@@ -77,23 +77,7 @@ def MergeColumnDataOnSheet (startingRowIndex, parsedUnmergedColumnData, parsedMe
 
 #chooses records from the merged records list that have the specified column index
 def SelectColumnFromMergedSheetData (MergedColumnDataOnSheet, columnIndex):
-	result = []
-	#cycle prefinish flag
-	lastRecord = False
-	#if any records were appended to the resulting list
-	appendingOccured = False
-
-	i = 0
-	while not lastRecord and i < len(MergedColumnDataOnSheet):
-		if MergedColumnDataOnSheet[i][0] == columnIndex:
-			result.append(MergedColumnDataOnSheet)
-			appendingOccured = True
-		else:
-			if appendingOccured:
-				lastRecord = True
-		i += 1
-
-	return result
+	return filter (lambda x: x[0] == columnIndex, MergedColumnDataOnSheet)
 
 
 
@@ -105,7 +89,7 @@ if isFound:
 #print readUnmergedColumnData(sheet, row, column)
 #print parseMergedCells(sheet)
 
-r = MergeColumnDataOnSheet(row, readUnmergedColumnData(sheet, row, column), parseMergedCells(sheet))
+r = SelectColumnFromMergedSheetData(MergeColumnDataOnSheet(row, readUnmergedColumnData(sheet, row, column), parseMergedCells(sheet)), 9)
 
-for ((xLow, xHigh, yLow, yHigh), s) in r:
+for ((xLow, yLow, xHigh, yHigh), s) in r:
 	print yLow, xLow, xHigh, yHigh, s
