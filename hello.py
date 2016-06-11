@@ -11,7 +11,7 @@ schema = json.load(open(schemaName))
 
 fname = os.path.join(dirname, fileName)
 
-book = open_workbook(fname)
+book = open_workbook(fname, formatting_info=True)
 
 sheet = book.sheet_by_index(0)
 
@@ -25,8 +25,6 @@ cell = sheet.cell(0, 0)
 columnName = schema['columns'][0]['name']
 #print columnName
 
-columnFound = False
-
 print sheet.ncols
 print sheet.nrows
 
@@ -38,18 +36,71 @@ def findColumn(sheet, columnName):
 				return (True, i, j)
 	return (False, sheet.nrows, sheet.ncols)
 
-def readColumnData (sheet, rowIndex, columnIndex):
+def readUnmergedColumnData (sheet, rowIndex, columnIndex):
 	result = []
 
 	for i in xrange(rowIndex + 1, sheet.nrows):
 		cellValue = sheet.cell_value(i, columnIndex)
 		if cellValue != "":
-			result.append((i, cellValue))
+			result.append((columnIndex, i, cellValue))
+
 	return result
+
+#lists all the merged cells in the xls
+def parseMergedCells (sheet):
+	i = j = xLow = xHigh = yLow = yHigh = 0
+	result = []
+
+	for crange in sheet.merged_cells:
+		yLow, yHigh, xLow, xHigh = crange
+		result.append (((xLow, yLow, xHigh, yHigh), sheet.cell_value(yLow, xLow)))
+
+	result = sorted (sorted (result, key=lambda tup: tup[0][0]), key=lambda tup: tup[0][1])
+
+	return result
+
+#merges all the records from merged and non-merged cell lists
+def MergeColumnDataOnSheet (startingRowIndex, parsedUnmergedColumnData, parsedMergedCellsData):
+	result = []
+
+	for i in xrange (startingRowIndex, parsedUnmergedColumnData):
+		(columnIndex, rowIndex, cellValue) = parsedUnmergedColumnData[i]
+		if cellValue != "":
+			result.append((columnIndex, rowIndex, 1, 1, cellValue))
+
+	for i in xrange (startingRowIndex, parsedMergedCellsData):
+		result.append(parsedMergedCellsData[i])
+
+	result = sorted (sorted (result, key=lambda tup: tup[0][0]), key=lambda tup: tup[0][1])
+	return result
+
+#chooses records from the merged records list that have the specified column index
+def SelectColumnFromMergedSheetData (MergedColumnDataOnSheet, columnIndex):
+	result = []
+	#cycle prefinish flag
+	lastRecord = False
+	#if any records were appended to the resulting list
+	appendingOccured = False
+
+	i = 0
+	while not lastRecord and i in xrange(MergedColumnDataOnSheet):
+		if MergedColumnDataOnSheet[i][0] == columnIndex:
+			result.append(MergedColumnDataOnSheet)
+			appendingOccured = True
+		else:
+			if appendingOccured:
+				lastRecord = True
+
+	return result
+
 
 
 (isFound, row, column) = findColumn(sheet, columnName)
 
 if isFound:
-	column = readColumnData(sheet, row, column)
-	print column
+	columnData = readUnmergedColumnData(sheet, row, column)
+
+r = MergeColumnDataOnSheet(row, readUnmergedColumnData(sheet, row, column), parseMergedCells(sheet))
+
+for ((xLow, xHigh, yLow, yHigh), s) in r:
+	print yLow, xLow, xHigh, yHigh, s
