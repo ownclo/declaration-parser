@@ -1,6 +1,10 @@
-[
-  {
-    "name" : "№\nп/п",
-    "type" : "int"
-  }
-]
+{
+  "type" : "xls",
+  "columns" : [
+    {
+      "name" : "№\nп/п",
+      "aliases" : "№",
+      "type" : "int"
+    }
+  ]
+}

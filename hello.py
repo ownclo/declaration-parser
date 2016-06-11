@@ -14,6 +14,12 @@ book = open_workbook(fname)
 
 sheet = book.sheet_by_index(0)
 
+a = []
+for i in xrange(0, 10):
+	a.append(i)
+
+print a
+
 cell = sheet.cell(0, 0)
 
 # for i in range(sheet.nrows):
