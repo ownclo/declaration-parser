@@ -48,7 +48,7 @@ def readUnmergedColumnData (sheet, rowIndex, columnIndex):
 
 #lists all the merged cells in the xls
 def parseMergedCells (sheet):
-	i = j = xLow = xHigh = yLow = yHigh = 0
+	xLow = yLow = yHigh = 0
 	result = []
 
 	for crange in sheet.merged_cells:
@@ -62,13 +62,14 @@ def parseMergedCells (sheet):
 #merges all the records from merged and non-merged cell lists
 def MergeColumnDataOnSheet (startingRowIndex, parsedUnmergedColumnData, parsedMergedCellsData):
 	result = []
+	length = len(parsedUnmergedColumnData)
 
-	for i in xrange (startingRowIndex, parsedUnmergedColumnData):
+	for i in xrange (startingRowIndex, length):
 		(columnIndex, rowIndex, cellValue) = parsedUnmergedColumnData[i]
 		if cellValue != "":
-			result.append((columnIndex, rowIndex, 1, 1, cellValue))
+			result.append(((columnIndex, rowIndex, 1, 1), cellValue))
 
-	for i in xrange (startingRowIndex, parsedMergedCellsData):
+	for i in xrange (startingRowIndex, length):
 		result.append(parsedMergedCellsData[i])
 
 	result = sorted (sorted (result, key=lambda tup: tup[0][0]), key=lambda tup: tup[0][1])
@@ -83,13 +84,14 @@ def SelectColumnFromMergedSheetData (MergedColumnDataOnSheet, columnIndex):
 	appendingOccured = False
 
 	i = 0
-	while not lastRecord and i in xrange(MergedColumnDataOnSheet):
+	while not lastRecord and i < len(MergedColumnDataOnSheet):
 		if MergedColumnDataOnSheet[i][0] == columnIndex:
 			result.append(MergedColumnDataOnSheet)
 			appendingOccured = True
 		else:
 			if appendingOccured:
 				lastRecord = True
+		i += 1
 
 	return result
 
@@ -99,6 +101,9 @@ def SelectColumnFromMergedSheetData (MergedColumnDataOnSheet, columnIndex):
 
 if isFound:
 	columnData = readUnmergedColumnData(sheet, row, column)
+
+#print readUnmergedColumnData(sheet, row, column)
+#print parseMergedCells(sheet)
 
 r = MergeColumnDataOnSheet(row, readUnmergedColumnData(sheet, row, column), parseMergedCells(sheet))
 
