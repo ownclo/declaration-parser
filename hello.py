@@ -1,8 +1,12 @@
 from xlrd import open_workbook, XL_CELL_TEXT
+import os
 
-FileName = "samples\svedeniya-o-dohodah-sotrudnikov-territorialnyih-organov-roskomnadzora-2015.xls"
+dirname = "samples"
+fileName = "svedeniya-o-dohodah-sotrudnikov-territorialnyih-organov-roskomnadzora-2015.xls"
 
-book = open_workbook(FileName)
+fname = os.path.join(dirname, fileName)
+
+book = open_workbook(fname)
 
 sheet = book.sheet_by_index(0)
 
