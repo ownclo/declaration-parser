@@ -1,55 +1,22 @@
 import json
+import types
 import os
 
 from xlrd import open_workbook
 
-dirname = "samples"
-fileName = "svedeniya-o-dohodah-sotrudnikov-territorialnyih-organov-roskomnadzora-2015.xls"
-schemaName = "schema.json"
-
-schema = json.load(open(schemaName))
-
-fname = os.path.join(dirname, fileName)
-
-book = open_workbook(fname, formatting_info=True)
-
-sheet = book.sheet_by_index(0)
-
-
-cell = sheet.cell(0, 0)
-
-# for i in range(sheet.nrows):
-#     #    print sheet.cell_type(1,i),sheet.cell_value(1,i)
-#     print sheet.cell_value(i, 0)
-
-columnName = schema['columns'][0]['name']
-#print columnName
-
-print sheet.ncols
-print sheet.nrows
-
-#returns TRUE and the coordinates of the cell that contains the specified text if the search succeeded.
-#if the cell was not found, then FALSE and the size of the entire table is returned.
-def findCellWithText(sheet, TextToFind):
-	for i in xrange(0, sheet.nrows):
-		for j in xrange(0, sheet.ncols):
-			cell = sheet.cell_value(i, j)
-			if TextToFind in cell:
-				return (True, i, j)
-	return (False, sheet.nrows, sheet.ncols)
-
-def readUnmergedColumnData (sheet, rowIndex, columnIndex):
+def parseUnmergedCells(sheet):
 	result = []
 
-	for i in xrange(rowIndex + 1, sheet.nrows):
-		cellValue = sheet.cell_value(i, columnIndex)
-		if cellValue != "":
-			result.append((columnIndex, i, cellValue))
+	for i in xrange(sheet.nrows):
+		for j in xrange(sheet.ncols):
+			cellValue = sheet.cell_value(i, j)
+			if cellValue != "":
+				result.append((j, i, cellValue))
 
 	return result
 
 #lists all the merged cells in the xls
-def parseMergedCells (sheet):
+def parseMergedCells(sheet):
 	xLow = yLow = yHigh = 0
 	result = []
 
@@ -62,11 +29,11 @@ def parseMergedCells (sheet):
 	return result
 
 #merges all the records from merged and non-merged cell lists
-def MergeColumnDataOnSheet (startingRowIndex, parsedUnmergedColumnData, parsedMergedCellsData):
+def mergeColumnDataOnSheet(parsedUnmergedColumnData, parsedMergedCellsData):
 	result = []
 	length = len(parsedUnmergedColumnData)
 
-	for i in xrange (startingRowIndex, length):
+	for i in xrange(length):
 		(columnIndex, rowIndex, cellValue) = parsedUnmergedColumnData[i]
 		if cellValue != "":
 			result.append(((columnIndex, rowIndex, columnIndex + 1, rowIndex + 1), cellValue))
@@ -77,68 +44,99 @@ def MergeColumnDataOnSheet (startingRowIndex, parsedUnmergedColumnData, parsedMe
 	result = sorted (sorted (result, key=lambda tup: tup[0][0]), key=lambda tup: tup[0][1])
 	return result
 
-def FillSchemeDataByScheme(InputData, Scheme):
-	result = []
-	SchemeElement = []
-	SchemeLength = len(Scheme)
-	InputDataLength = len(InputData)
+def fillSchemeDataByScheme(inputData, scheme):
+	result = {}
+	columns = scheme["columns"]
 
-	for i in xrange (SchemeLength):
-		result.append([])
-		SchemeElement = Scheme["columns"][i]
-		for j in xrange (InputDataLength):
-			CellValue = InputData[j][1]
-			if SchemeElement["name"] in CellValue:
-				result[i].append(InputData[j])
-			else:
-				for k in xrange(len(SchemeElement["aliases"])):
-					if SchemeElement["aliases"][k] in CellValue:
-						result[i].append(InputData[j])
-	if len(result) == SchemeElement:
-		return (True, result)
-	else:
-		return (False, [])
+	for column in columns:
+		toName = column["toName"]
 
-#remerges the list in multiple logical columns according to the initial data;
-#builds a table containing logical column coordinates
-#def BuildLogicalColumnsFromMergedDataset (InputData, ParsedScheme):
-#	result = []
-#	InputLength = len (InputData)
-#	SchemeLength = len(ParsedScheme)
-#
-#	for i in xrange(SchemeLength):
-#		CellValue = ParsedScheme[i][4]
-#		result.append(())
-#		(IsFound, x, y) = findCellWithText(CellValue)
-#		if IsFound:
-#			j = 0
-#			Found = False
-#			while j < InputLength and not Found:
-#				if CellValue == InputData[j][4]:
-#					result[i].append()
-#					Found = True
-#					j += 1
-#
-#
-#	return result
+		for inp in inputData:
+			value = inp[1]
+			xLow, xHigh = xRange(inp[0])
+
+			if isMatchedName(column, value) and toName not in result:
+				result[toName] = (xLow, xHigh), typeMap()[column["type"]]
+
+	return result
+
+def isMatchedName(schemeElem, value):
+	return type(value) is types.UnicodeType and matchedName(schemeElem, value)
+
+def matchedName(schemeElem, value):
+	aliases = [schemeElem["name"]] + schemeElem["aliases"]
+	return any([ name in value for name in aliases])
 
 #chooses records from the merged records list that have the specified column index
-def SelectColumnFromMergedSheetData (MergedColumnDataOnSheet, columnIndex):
-	return filter (lambda x: x[0] == columnIndex, MergedColumnDataOnSheet)
+def selectColumn(columnDesc, data):
+	return map(lambda datum: convertType(columnDesc, datum),
+			filter(lambda datum: isDatumInColumn(columnDesc, datum), data))
+
+def selectRow(rowLoc, data):
+	return filter(lambda datum: inRange(yRange(datum[0]), yRange(rowLoc)), data)
+
+def isDatumInColumn(columnDesc, datum):
+	dataRange = datum[0]
+	dataValue = datum[1]
+	descRange = columnDesc[0]
+	descType  = columnDesc[1]
+
+	return inRange(xRange(dataRange), descRange) and typeMatches(dataValue, descType)
+
+def xRange((xLow, _yLow, xHigh, _yHigh)):
+	return (xLow, xHigh)
+
+def yRange((_xLow, yLow, _xHigh, yHigh)):
+	return (yLow, yHigh)
+
+def inRange((datumLow, datumHigh), (rangeLow, rangeHigh)):
+	return datumLow >= rangeLow and datumHigh <= rangeHigh
+
+def typeMatches(dataValue, descType):
+	dataType = type(dataValue)
+	if dataType is descType:
+		return True
+
+	if dataType is float and descType is int:
+		return dataValue.is_integer()
+
+def convertType(columnDesc, datum):
+	descType = columnDesc[1]
+	coord, datumValue = datum
+	if descType is int:
+		return coord, int(datumValue)
+	else: return datum
+
+def typeMap():
+	TYPES = {"string" : types.UnicodeType,
+			 "int"    : int}
+	return TYPES
+
+def main():
+	dirname = "samples"
+	fileName = "svedeniya-o-dohodah-sotrudnikov-territorialnyih-organov-roskomnadzora-2015.xls"
+	schemaName = "schema.json"
+
+	schema = json.load(open(schemaName))
+	fname = os.path.join(dirname, fileName)
+	book = open_workbook(fname, formatting_info=True)
+	sheet = book.sheet_by_index(0)
+
+	unmerged = parseUnmergedCells(sheet)
+	merged = parseMergedCells(sheet)
+
+	data = mergeColumnDataOnSheet(unmerged, merged)
+	columnDict = fillSchemeDataByScheme(data, schema)
+
+	columnDesc = columnDict['id']
+
+	idColumn = selectColumn(columnDesc, data)
+	firstIdLoc = idColumn[2][0]
+	firstRow = selectRow(firstIdLoc, data)
+
+	for (arange, elem) in firstRow:
+		print arange, elem
 
 
-
-(isFound, row, column) = findCellWithText(sheet, columnName)
-
-if isFound:
-	columnData = readUnmergedColumnData(sheet, row, column)
-
-#print readUnmergedColumnData(sheet, row, column)
-#print parseMergedCells(sheet)
-
-MergedCells = MergeColumnDataOnSheet(row, readUnmergedColumnData(sheet, row, column), parseMergedCells(sheet))
-
-r = FillSchemeDataByScheme(MergedCells, schema)
-
-for ((xLow, yLow, xHigh, yHigh), s) in r:
-	print xLow, yLow, xHigh, yHigh, s
+if __name__ == "__main__":
+	main()

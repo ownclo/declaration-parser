@@ -2,11 +2,13 @@
   "type" : "xls",
   "columns" : [
     {
+	  "toName" : "id",
       "name" : "№\nп/п",
-      "aliases" : "№",
+      "aliases" : ["№"],
       "type" : "int"
     },
     {
+	  "toName" : "name",
       "name" : "Фамилия",
       "aliases" : ["ФИО", "Имя", "Отчество", "лиц"],
       "type" : "string"
