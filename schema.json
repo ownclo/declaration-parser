@@ -10,13 +10,73 @@
     {
 	  "toName" : "name",
       "name" : ["Фамилия"],
-      "aliases" : ["ФИО", "Имя", "Отчество", "лиц"],
+      "aliases" : ["ФИО", "Имя", "Отчество", "лиц", "имя", "фамилия", "фио", "отчество"],
+      "type" : "string"
+    },
+    {
+	  "toName" : "job",
+      "name" : ["Должность"],
+      "aliases" : ["должность"],
       "type" : "string"
     },
     {
       "toName": "ownershipObjectType",
       "name": ["в собственности", "вид объекта"],
       "aliases": [],
+      "type": "string"
+    },
+    {
+      "toName": "ownershipPropertyType",
+      "name": ["в собственности", "вид собственности"],
+      "aliases": [],
+      "type": "string"
+    },
+    {
+      "toName": "ownershipObjectSquare",
+      "name": ["в собственности", "площадь (кв. м)"],
+      "aliases": [],
+      "type": "float"
+    },
+    {
+      "toName": "ownershipObjectCountry",
+      "name": ["в собственности", "страна расположения"],
+      "aliases": [],
+      "type": "string"
+    },
+    {
+      "toName": "usageObjectType",
+      "name": ["в пользовании", "вид объекта"],
+      "aliases": [],
+      "type": "string"
+    },
+    {
+      "toName": "usageObjectSquare",
+      "name": ["в пользовании", "площадь (кв. м)"],
+      "aliases": [],
+      "type": "float"
+    },
+    {
+      "toName": "usageObjectCountry",
+      "name": ["в пользовании", "страна расположения"],
+      "aliases": [],
+      "type": "string"
+    },
+    {
+      "toName": ["vehicles"],
+      "name": ["транспортные средства"],
+      "aliases": ["транспорт", "транспортное средство", "автомобиль", "автомобили"],
+      "type": "string"
+    },
+    {
+      "toName": ["perYearIncome"],
+      "name": ["годовой доход"],
+      "aliases": ["доход"],
+      "type": "float"
+    },
+    {
+      "toName": ["incomeSourcesInformation"],
+      "name": ["сведения об источниках дохода"],
+      "aliases": ["источник дохода"],
       "type": "string"
     }
   ]

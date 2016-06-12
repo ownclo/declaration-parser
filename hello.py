@@ -132,7 +132,8 @@ def convertType(columnDesc, datum):
 
 def typeMap():
 	TYPES = {"string" : types.UnicodeType,
-			 "int"    : int}
+			 "int"    : int,
+			 "float"  : float}
 	return TYPES
 
 def main():
@@ -151,8 +152,6 @@ def main():
 	data = mergeColumnDataOnSheet(unmerged, merged)
 	columnDict = fillSchemeDataByScheme(data, schema, sheet.ncols)
 
-	#print columnDict
-
 	columnDesc = columnDict['id']
 
 	idColumn = selectColumn(columnDesc, data)
@@ -163,7 +162,6 @@ def main():
 
 	for (arange, elem) in l:
 		print arange, elem
-
 
 if __name__ == "__main__":
 	main()
