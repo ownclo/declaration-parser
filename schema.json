@@ -3,15 +3,21 @@
   "columns" : [
     {
 	  "toName" : "id",
-      "name" : "№\nп/п",
+      "name" : ["№\nп/п"],
       "aliases" : ["№"],
       "type" : "int"
     },
     {
 	  "toName" : "name",
-      "name" : "Фамилия",
+      "name" : ["Фамилия"],
       "aliases" : ["ФИО", "Имя", "Отчество", "лиц"],
       "type" : "string"
+    },
+    {
+      "toName": "ownershipObjectType",
+      "name": ["в собственности", "вид объекта"],
+      "aliases": [],
+      "type": "string"
     }
   ]
 }
