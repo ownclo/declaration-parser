@@ -104,8 +104,6 @@ def isDatumInColumn(columnDesc, datum):
 	descRange = columnDesc[0]
 	descType  = columnDesc[1]
 
-	print dataRange, descRange
-	print inRange(xRange(dataRange), descRange)
 	return inRange(xRange(dataRange), descRange) and typeMatches(dataValue, descType)
 
 def xRange((xLow, _yLow, xHigh, _yHigh)):
@@ -115,7 +113,7 @@ def yRange((_xLow, yLow, _xHigh, yHigh)):
 	return (yLow, yHigh)
 
 def inRange((datumLow, datumHigh), (rangeLow, rangeHigh)):
-	return datumLow >= rangeLow and datumHigh < rangeHigh
+	return datumLow >= rangeLow and datumHigh <= rangeHigh
 
 def typeMatches(dataValue, descType):
 	dataType = type(dataValue)
@@ -153,16 +151,18 @@ def main():
 	data = mergeColumnDataOnSheet(unmerged, merged)
 	columnDict = fillSchemeDataByScheme(data, schema, sheet.ncols)
 
-	print columnDict
+	#print columnDict
 
 	columnDesc = columnDict['id']
 
 	idColumn = selectColumn(columnDesc, data)
-	firstIdLoc = idColumn[17][0]
+	firstIdLoc = idColumn[0][0]
 	firstRow = selectRow(firstIdLoc, data)
 
-#	for (arange, elem) in firstRow:
-#		print arange, elem
+	l = selectColumn(columnDict["ownershipObjectType"], firstRow)
+
+	for (arange, elem) in l:
+		print arange, elem
 
 
 if __name__ == "__main__":
